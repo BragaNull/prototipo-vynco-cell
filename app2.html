@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<title>VYNCO — Visibilidade Total</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ─────────────────────────────────────────────────────────
+   DESIGN TOKENS & BASE (iPhone 15 / OLED)
+───────────────────────────────────────────────────────── */
+:root {
+  --bg:       #000000;
+  --bg2:      #0A0B10;
+  --card:     #11131A;
+  --card2:    #161922;
+  --bg-float: rgba(17, 19, 26, 0.75);
+
+  --b1: rgba(255, 255, 255, 0.08);
+  --b2: rgba(255, 255, 255, 0.12);
+  --b3: rgba(255, 255, 255, 0.20);
+
+  --ora:      #FF6B00;
+  --ora2:     #FF8A33;
+  --ora-dim:  rgba(255, 107, 0, 0.12);
+  --ora-glow: rgba(255, 107, 0, 0.25);
+
+  --green:    #32D74B;
+  --yellow:   #FFD60A;
+  --orange-s: #FF9F0A;
+  --red:      #FF453A;
+  --slate:    #636366;
+
+  --green-bg:  rgba(50, 215, 75, 0.12);
+  --yellow-bg: rgba(255, 214, 10, 0.12);
+  --oran-bg:   rgba(255, 159, 10, 0.12);
+  --red-bg:    rgba(255, 69, 58, 0.12);
+
+  --font-ui:   'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --font-disp: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+
+  --t1: #FFFFFF;
+  --t2: #EBEBF5;
+  --t3: #EBEBF599;
+  --t4: #EBEBF54D;
+
+  --r1: 10px;
+  --r2: 14px;
+  --r3: 20px;
+  --r-btn: 12px;
+
+  --sh-card: 0 4px 24px rgba(0,0,0,0.4);
+  --sh-ora:  0 8px 24px rgba(255,107,0,0.3);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg); color: var(--t1);
+  font-family: var(--font-ui); font-size: 15px; line-height: 1.5;
+  min-height: 100vh; min-height: -webkit-fill-available;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+}
+
+.app-container { display: flex; flex-direction: column; height: 100vh; height: 100dvh; }
+
+/* ─────────────────────────────────────────────────────────
+   SHELL: TOPBAR & BOTTOM NAV
+───────────────────────────────────────────────────────── */
+.topbar {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--bg-float); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-bottom: 0.5px solid var(--b1);
+  padding: max(16px, env(safe-area-inset-top)) 20px 12px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.topbar-title { font-family: var(--font-disp); font-size: 20px; font-weight: 700; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+
+.user-ava {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--ora), var(--ora2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: white; font-family: var(--font-disp);
+  box-shadow: 0 2px 10px rgba(255,107,0,0.2);
+}
+
+.bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--bg-float); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-top: 0.5px solid var(--b1);
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex; justify-content: space-around; align-items: center;
+  z-index: 100; height: calc(64px + env(safe-area-inset-bottom));
+}
+
+.bnav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  height: 100%; color: var(--t3); font-size: 10px; font-weight: 500; gap: 4px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.bnav-icon { font-size: 20px; transition: transform 0.2s, color 0.2s; }
+.bnav-item.active { color: var(--ora); }
+.bnav-item.active .bnav-icon { transform: translateY(-2px); }
+.bnav-item:active .bnav-icon { transform: scale(0.85); }
+
+/* CONTENT */
+.content {
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 16px 16px calc(80px + env(safe-area-inset-bottom));
+  scrollbar-width: none;
+}
+.content::-webkit-scrollbar { display: none; }
+.screen { display: none; animation: screenIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.screen.active { display: block; }
+
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─────────────────────────────────────────────────────────
+   GLOBAL UI COMPONENTS
+───────────────────────────────────────────────────────── */
+.search-mobile {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--card2); border: 1px solid var(--b1); border-radius: var(--r2);
+  padding: 12px 16px; margin-bottom: 20px; transition: border-color 0.2s;
+}
+.search-mobile:focus-within { border-color: var(--ora); }
+.search-mobile input { background: none; border: none; outline: none; font-size: 15px; color: var(--t1); width: 100%; font-family: var(--font-ui); }
+.search-mobile input::placeholder { color: var(--t3); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: var(--r-btn); font-size: 15px; font-weight: 600; font-family: var(--font-ui);
+  cursor: pointer; border: none; padding: 14px 20px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); min-height: 48px;
+}
+.btn-primary { background: var(--ora); color: white; box-shadow: var(--sh-ora); }
+.btn-primary:active { transform: scale(0.96); background: var(--ora2); }
+.btn-ghost { background: var(--card2); color: var(--t2); border: 1px solid var(--b2); }
+.btn-ghost:active { transform: scale(0.96); background: var(--b3); }
+.btn-sm { padding: 10px 16px; font-size: 13px; min-height: 38px; }
+.btn-xs { padding: 8px 12px; font-size: 12px; min-height: 32px; }
+.btn-icon { width: 44px; height: 44px; padding: 0; border-radius: 50%; font-size: 18px; }
+
+.card { background: var(--card); border: 0.5px solid var(--b1); border-radius: var(--r3); padding: 20px; margin-bottom: 16px; box-shadow: var(--sh-card); }
+.sec-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.sec-title { font-family: var(--font-disp); font-size: 16px; font-weight: 700; color: var(--t1); display: flex; align-items: center; gap: 6px; }
+.sec-sub { font-size: 13px; color: var(--t3); margin-top: 4px; }
+.divider { height: 1px; background: var(--b1); margin: 16px 0; }
+
+.chip { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--card2); color: var(--t2); border: 1px solid var(--b1); }
+.chip.ora { background: var(--ora-dim); color: var(--ora2); border-color: var(--ora-glow); }
+
+.pill { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.pill.quente { background: var(--green-bg); color: var(--green); }
+.pill.morno  { background: var(--yellow-bg); color: var(--yellow); }
+.pill.esf    { background: var(--oran-bg); color: var(--orange-s); }
+.pill.frio   { background: var(--red-bg); color: var(--red); }
+
+.sdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.sdot.quente { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.sdot.morno  { background: var(--yellow); }
+.sdot.esf    { background: var(--orange-s); }
+.sdot.frio   { background: var(--red); }
+.sdot.perdido{ background: var(--slate); }
+
+.ava { border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-disp); font-weight: 700; flex-shrink: 0; }
+.ava.quente { background: var(--green-bg); color: var(--green); }
+.ava.morno  { background: var(--yellow-bg); color: var(--yellow); }
+.ava.esf    { background: var(--oran-bg); color: var(--orange-s); }
+.ava.frio   { background: var(--red-bg); color: var(--red); }
+
+.ftabs-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 12px; margin-bottom: 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.ftabs-scroll::-webkit-scrollbar { display: none; }
+.ftab { padding: 10px 18px; border-radius: 24px; font-size: 14px; font-weight: 500; white-space: nowrap; background: var(--card2); color: var(--t3); border: 1px solid var(--b1); flex-shrink: 0; transition: all 0.2s; }
+.ftab.active { background: var(--ora-dim); color: var(--ora); border-color: var(--ora-glow); }
+
+.alert { background: rgba(255, 69, 58, 0.1); border: 1px solid rgba(255, 69, 58, 0.3); border-radius: var(--r2); padding: 14px; font-size: 14px; color: #FF6961; display: flex; gap: 12px; margin-bottom: 16px; align-items: flex-start; }
+
+/* ─────────────────────────────────────────────────────────
+   DASHBOARD SPECIFICS
+───────────────────────────────────────────────────────── */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.stat-card { background: var(--card); border: 0.5px solid var(--b1); border-radius: var(--r2); padding: 16px; position: relative; overflow: hidden; }
+.stat-card::before { content:''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.stat-card.s-green::before  { background: var(--green); }
+.stat-card.s-yellow::before { background: var(--yellow); }
+.stat-card.s-red::before    { background: var(--red); }
+.stat-card.s-ora::before    { background: linear-gradient(90deg, var(--ora), var(--ora2)); }
+.stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--t3); margin-bottom: 6px; }
+.stat-value { font-family: var(--font-disp); font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 8px; letter-spacing: -1px; }
+.stat-footer { font-size: 12px; color: var(--t2); display: flex; align-items: center; gap: 4px; }
+.trend { padding: 3px 6px; border-radius: 6px; font-size: 11px; font-weight: 600; }
+.trend.up   { background: var(--green-bg); color: var(--green); }
+.trend.warn { background: var(--red-bg); color: var(--red); }
+
+.health-card { display: flex; flex-direction: column; gap: 20px; text-align: center; }
+.health-score-num { font-family: var(--font-disp); font-size: 48px; font-weight: 800; color: var(--green); letter-spacing: -2px; line-height: 1; }
+.health-score-lbl { font-size: 12px; color: var(--t3); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+.bar-track { height: 10px; background: var(--card2); border-radius: 20px; overflow: hidden; margin: 16px 0; }
+.bar-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--red) 0%, var(--yellow) 45%, var(--green) 76%); width: 76%; }
+.health-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.hl-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--t2); }
+
+.egg-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 16px; background: var(--card2); border-radius: var(--r2); min-height: 120px; }
+.egg { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: white; font-family: var(--font-disp); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+.egg:active { transform: scale(0.85); }
+.egg.quente { background: var(--green); box-shadow: 0 4px 12px rgba(50, 215, 75, 0.2); }
+.egg.morno  { background: var(--yellow); }
+.egg.esf    { background: var(--orange-s); }
+.egg.frio   { background: var(--red); }
+
+.rev-big { font-family: var(--font-disp); font-size: 32px; font-weight: 800; color: var(--green); margin: 10px 0 8px; letter-spacing: -1px; line-height: 1; }
+.rev-sub { font-size: 13px; color: var(--t2); margin-bottom: 20px; line-height: 1.5; }
+.rb-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.rb-label { font-size: 13px; color: var(--t2); width: 130px; flex-shrink: 0; }
+.rb-track { flex: 1; height: 6px; background: var(--card2); border-radius: 20px; overflow: hidden; }
+.rb-fill  { height: 100%; border-radius: 20px; background: var(--green); }
+.rb-val   { font-size: 13px; font-weight: 600; color: var(--t1); width: 50px; text-align: right; }
+
+/* ─────────────────────────────────────────────────────────
+   ACTIONS & LISTS SPECIFICS
+───────────────────────────────────────────────────────── */
+.act-group-lbl { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 24px 0 12px; display: flex; align-items: center; gap: 6px; }
+.act-group-lbl.urg { color: var(--red); margin-top: 0; }
+.act-group-lbl.imp { color: var(--yellow); }
+.act-group-lbl.opt { color: var(--green); }
+
+.act-row { display: flex; align-items: center; justify-content: space-between; padding: 16px; background: var(--card2); border-radius: var(--r2); margin-bottom: 8px; border: 0.5px solid var(--b1); transition: transform 0.2s, background 0.2s; }
+.act-row:active { transform: scale(0.98); background: var(--b2); }
+.act-row-left { display: flex; align-items: center; gap: 14px; }
+.act-count { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+.ac-red { background: var(--red-bg); color: var(--red); }
+.ac-yellow { background: var(--yellow-bg); color: var(--yellow); }
+.ac-green { background: var(--green-bg); color: var(--green); }
+.act-main { font-size: 15px; font-weight: 600; color: var(--t1); margin-bottom: 2px; }
+.act-sub { font-size: 13px; color: var(--t3); }
+
+.ai-card { background: var(--card2); border: 0.5px solid var(--b1); border-left: 3px solid var(--ora); border-radius: var(--r2); padding: 16px; margin-bottom: 12px; }
+.ai-card.cold { border-left-color: var(--orange-s); }
+.ai-card-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.ai-card-name { font-size: 14px; font-weight: 600; color: var(--t1); }
+.ai-card-type { font-size: 12px; color: var(--t3); }
+.ai-card-body { font-size: 14px; color: var(--t2); line-height: 1.6; margin-bottom: 16px; font-style: italic; }
+.ai-card-actions { display: flex; gap: 8px; }
+
+/* ─────────────────────────────────────────────────────────
+   CLIENTES BASE SPECIFICS
+───────────────────────────────────────────────────────── */
+.client-row { background: var(--card); border: 0.5px solid var(--b1); border-radius: var(--r3); padding: 16px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 12px; transition: transform 0.2s; }
+.client-row:active { transform: scale(0.97); }
+.cl-top { display: flex; align-items: center; gap: 12px; }
+.cl-name { font-size: 16px; font-weight: 600; color: var(--t1); margin-bottom: 2px;}
+.cl-detail { font-size: 13px; color: var(--t3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
+.cl-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 0.5px solid var(--b1); }
+.cs-val { font-family: var(--font-disp); font-size: 15px; font-weight: 700; }
+.cs-lbl { font-size: 11px; color: var(--t3); text-transform: uppercase; margin-top: 2px; }
+
+/* ─────────────────────────────────────────────────────────
+   RAIO-X SPECIFICS
+───────────────────────────────────────────────────────── */
+.hero-ava { width: 88px; height: 88px; border-radius: 50%; margin: 0 auto 16px; background: var(--card2); border: 2px solid var(--green); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 800; color: var(--green); box-shadow: 0 0 24px var(--green-bg); }
+.hero-name { font-family: var(--font-disp); font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 4px; }
+.hero-sub { font-size: 14px; color: var(--t3); text-align: center; }
+
+.gauge-hdr { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+.gauge-lbl { font-size: 12px; color: var(--t3); text-transform: uppercase; letter-spacing: 1px; }
+.gauge-val { font-family: var(--font-disp); font-size: 18px; font-weight: 700; color: var(--green); }
+.gauge-track { height: 10px; background: var(--card2); border-radius: 20px; overflow: hidden; }
+.gauge-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--green), #6EFFB8); box-shadow: 0 0 8px rgba(50,215,75,0.4); }
+
+.info-row { display: flex; justify-content: space-between; padding: 14px 0; border-bottom: 0.5px solid var(--b1); font-size: 15px; }
+.info-row:last-child { border-bottom: none; }
+.info-key { color: var(--t3); }
+.info-val { font-weight: 600; color: var(--t1); }
+
+.snapshot { background: var(--card2); border: 0.5px solid var(--b1); border-left: 2px solid var(--ora); border-radius: var(--r2); padding: 16px; margin-bottom: 16px; }
+.snap-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--ora); margin-bottom: 12px; font-weight: 700; }
+.snap-item { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; margin-bottom: 10px; color: var(--t2); line-height: 1.4; }
+.snap-item:last-child { margin-bottom: 0; }
+
+.tab-nav { display: flex; border-bottom: 0.5px solid var(--b1); margin-bottom: 20px; gap: 0; }
+.tab-btn { flex: 1; padding: 12px 0; font-size: 14px; font-weight: 500; color: var(--t3); cursor: pointer; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.2s, border-color 0.2s; background: none; font-family: var(--font-ui); text-align: center; }
+.tab-btn.active { color: var(--ora2); border-bottom-color: var(--ora); font-weight: 600; }
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: screenIn 0.2s ease; }
+
+.tl-list { display: flex; flex-direction: column; gap: 12px; }
+.tl-item { border: 0.5px solid var(--b1); border-left: 2px solid var(--b1); border-radius: var(--r2); padding: 16px; background: var(--card2); transition: border-left-color 0.2s; }
+.tl-item:active { border-left-color: var(--ora); }
+.tl-hdr { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+.tl-service { font-size: 15px; font-weight: 600; color: var(--t1); margin-bottom: 4px; }
+.tl-date { font-size: 12px; color: var(--t3); }
+.tl-val { font-family: var(--font-disp); font-size: 16px; font-weight: 700; color: var(--green); }
+.tl-tags { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.tl-tag { font-size: 11px; padding: 4px 8px; border-radius: 6px; background: var(--bg); color: var(--t2); border: 0.5px solid var(--b1); }
+.tl-note { font-size: 13px; color: var(--t2); margin-top: 10px; padding: 10px 12px; background: var(--bg); border-radius: var(--r1); line-height: 1.5; font-style: italic; }
+
+.msg-row { display: flex; gap: 8px; max-width: 85%; margin-bottom: 12px; }
+.msg-row.recv { align-self: flex-start; }
+.msg-row.sent { align-self: flex-end; flex-direction: row-reverse; }
+.msg-bub { padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; }
+.msg-row.recv .msg-bub { background: var(--card2); color: var(--t1); border-radius: 4px 16px 16px 16px; }
+.msg-row.sent .msg-bub { background: var(--ora-dim); color: var(--ora2); border: 0.5px solid var(--ora-glow); border-radius: 16px 4px 16px 16px; }
+.msg-time { font-size: 11px; color: var(--t3); margin-top: 4px; }
+
+.note-card { background: var(--card2); border: 0.5px solid var(--b1); border-radius: var(--r2); padding: 14px; margin-bottom: 10px; }
+.note-hdr { display: flex; justify-content: space-between; margin-bottom: 8px; }
+.note-auth { font-size: 13px; color: var(--ora2); font-weight: 600; }
+.note-date { font-size: 12px; color: var(--t3); }
+.note-txt { font-size: 14px; color: var(--t2); line-height: 1.5; }
+
+/* ─────────────────────────────────────────────────────────
+   ANALYTICS SPECIFICS
+───────────────────────────────────────────────────────── */
+.chart-card { background: var(--card); border: 0.5px solid var(--b1); border-radius: var(--r3); padding: 20px; margin-bottom: 16px; }
+.chart-lbl { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--t3); margin-bottom: 8px; }
+.chart-big { font-family: var(--font-disp); font-size: 32px; font-weight: 800; margin-bottom: 6px; line-height: 1; letter-spacing: -0.5px; }
+.chart-chg { font-size: 12px; padding: 4px 8px; border-radius: 6px; display: inline-block; font-weight: 600; }
+.chart-chg.pos { background: var(--green-bg); color: var(--green); }
+.chart-chg.neg { background: var(--red-bg); color: var(--red); }
+
+.bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 100px; margin-top: 20px; }
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; }
+.b-fill { width: 100%; border-radius: 4px 4px 0 0; background: var(--ora); opacity: 0.55; transition: opacity 0.2s; }
+.b-fill.hi { opacity: 1; background: var(--ora2); }
+.b-lbl { font-size: 11px; color: var(--t3); }
+
+.donut-wrap { display: flex; align-items: center; gap: 24px; margin-top: 20px; justify-content: center; }
+.donut-svg { width: 120px; height: 120px; flex-shrink: 0; }
+.donut-leg { display: flex; flex-direction: column; gap: 8px; }
+.dl-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--t2); }
+.dl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dl-pct { margin-left: auto; font-weight: 600; color: var(--t1); }
+
+/* ─────────────────────────────────────────────────────────
+   SEGMENTAÇÃO SPECIFICS
+───────────────────────────────────────────────────────── */
+.seg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+.seg-card { background: var(--card); border: 0.5px solid var(--b1); border-radius: var(--r2); padding: 16px; text-align: center; transition: transform 0.2s; }
+.seg-card:active { transform: scale(0.96); background: var(--card2); }
+.seg-emoji { font-size: 28px; margin-bottom: 10px; }
+.seg-name { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.seg-count { font-family: var(--font-disp); font-size: 24px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.5px; }
+.seg-desc { font-size: 11px; color: var(--t3); }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+  
+  <header class="topbar">
+    <div class="topbar-title" id="topbar-title"><span>📊</span> Dashboard</div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <button class="btn btn-ghost btn-icon" style="background:var(--card2)">🔔</button>
+      <div class="user-ava">MR</div>
+    </div>
+  </header>
+
+  <main class="content">
+
+    <div id="screen-dashboard" class="screen active">
+      
+      <div class="search-mobile">
+        <span style="font-size:18px;color:var(--t3)">⌕</span>
+        <input type="text" placeholder="Buscar cliente, placa, serviço...">
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card s-green">
+          <div class="stat-label">Quentes</div>
+          <div class="stat-value" style="color:var(--green)">127</div>
+          <div class="stat-footer"><span class="trend up">↑ 12</span> mês</div>
+        </div>
+        <div class="stat-card s-yellow">
+          <div class="stat-label">Esfriando</div>
+          <div class="stat-value" style="color:var(--orange-s)">43</div>
+          <div class="stat-footer"><span class="trend warn">↑ 5</span> sem</div>
+        </div>
+        <div class="stat-card s-red">
+          <div class="stat-label">Em Risco</div>
+          <div class="stat-value" style="color:var(--red)">19</div>
+          <div class="stat-footer" style="color:var(--red)">⚠ urgente</div>
+        </div>
+        <div class="stat-card s-ora">
+          <div class="stat-label">Receita 30d</div>
+          <div class="stat-value" style="color:var(--ora)">18k</div>
+          <div class="stat-footer">R$ potencial</div>
+        </div>
+      </div>
+
+      <div class="card health-card">
+        <div>
+          <div class="health-score-num">76%</div>
+          <div class="health-score-lbl">Saúde da Base</div>
+        </div>
+        <div style="text-align:left">
+          <div style="font-size:13px; color:var(--t3); margin-bottom:8px">Subiu 4% este mês</div>
+          <div class="bar-track"><div class="bar-fill"></div></div>
+          <div class="health-legend">
+            <div class="hl-item"><div class="sdot quente"></div>127 Quentes</div>
+            <div class="hl-item"><div class="sdot morno"></div>43 Mornos</div>
+            <div class="hl-item"><div class="sdot esf"></div>19 Esfriando</div>
+            <div class="hl-item"><div class="sdot frio"></div>8 Frios</div>
+            <div class="hl-item"><div class="sdot perdido"></div>3 Perdidos</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-hdr">
+          <div><div class="sec-title">🥚 Cartela de Clientes</div><div class="sec-sub">Visão geral dos 200 clientes</div></div>
+        </div>
+        <div class="ftabs-scroll">
+          <button class="ftab active" onclick="filterEggs(this,'all')">Todos</button>
+          <button class="ftab" onclick="filterEggs(this,'quente')">🟢 Quentes</button>
+          <button class="ftab" onclick="filterEggs(this,'morno')">🟡 Mornos</button>
+          <button class="ftab" onclick="filterEggs(this,'esf')">🟠 Esfriando</button>
+          <button class="ftab" onclick="filterEggs(this,'frio')">🔴 Frios</button>
+        </div>
+        <div class="egg-container" id="egg-grid"></div>
+      </div>
+
+      <div class="card">
+        <div class="sec-hdr">
+          <div class="sec-title">🎯 Ações para Hoje</div>
+          <button class="btn btn-ghost btn-xs" onclick="nav(null,'acoes')">Ver →</button>
+        </div>
+        
+        <div class="act-group-lbl urg">🔴 Urgente — Fazer Hoje</div>
+        <div class="act-row" onclick="nav(null,'acoes')">
+          <div class="act-row-left">
+            <div class="act-count ac-red">8</div>
+            <div><div class="act-main">Clientes esfriando</div><div class="act-sub">Precisam de mensagem agora</div></div>
+          </div>
+          <span style="color:var(--t4)">›</span>
+        </div>
+
+        <div class="act-group-lbl imp">🟡 Importante — Esta Semana</div>
+        <div class="act-row">
+          <div class="act-row-left">
+            <div class="act-count ac-yellow">12</div>
+            <div><div class="act-main">No prazo de retorno</div><div class="act-sub">Oferecer agendamento</div></div>
+          </div>
+          <span style="color:var(--t4)">›</span>
+        </div>
+        <div class="act-row">
+          <div class="act-row-left">
+            <div class="act-count ac-yellow">4</div>
+            <div><div class="act-main">Aniversariantes</div><div class="act-sub">Enviar mensagem especial</div></div>
+          </div>
+          <span style="color:var(--t4)">›</span>
+        </div>
+
+        <div class="act-group-lbl opt">🟢 Opcional</div>
+        <div class="act-row" style="margin-bottom:0">
+          <div class="act-row-left">
+            <div class="act-count ac-green">23</div>
+            <div><div class="act-main">Conteúdo de valor</div><div class="act-sub">Clientes quentes engajados</div></div>
+          </div>
+          <span style="color:var(--t4)">›</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-hdr"><div class="sec-title">💰 Previsão de Receita</div><span class="chip ora">30 dias</span></div>
+        <div class="rev-big">R$ 12.710</div>
+        <div class="rev-sub">61 clientes no prazo · taxa histórica 68% · ticket médio R$ 310</div>
+        
+        <div class="rb-row"><div class="rb-label">No prazo</div><div class="rb-track"><div class="rb-fill" style="width:100%;background:var(--ora)"></div></div><div class="rb-val">61</div></div>
+        <div class="rb-row"><div class="rb-label">Retorno (68%)</div><div class="rb-track"><div class="rb-fill" style="width:68%;background:var(--yellow)"></div></div><div class="rb-val">~41</div></div>
+        <div class="rb-row"><div class="rb-label">Ticket médio</div><div class="rb-track"><div class="rb-fill" style="width:75%"></div></div><div class="rb-val">R$ 310</div></div>
+        
+        <div class="divider"></div>
+        <div style="font-size:13px;color:var(--t3);line-height:1.6">
+          🔔 <strong style="color:var(--ora2)">Se agir agora</strong>, a taxa pode subir para 80% — garantindo mais <strong style="color:var(--green)">R$ 3.720</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-clientes" class="screen">
+      <div class="search-mobile" style="margin-bottom:16px"><span style="font-size:18px;color:var(--t3)">⌕</span><input type="text" placeholder="Buscar na base..."></div>
+      
+      <div class="ftabs-scroll">
+        <div class="ftab active">Todos (200)</div>
+        <div class="ftab">🔥 VIP (24)</div>
+        <div class="ftab">📉 Em risco (27)</div>
+        <div class="ftab">⏰ No prazo (61)</div>
+        <div class="ftab">💤 Inativos (11)</div>
+      </div>
+
+      <div class="client-list">
+        <div class="client-row" onclick="nav(null,'raiox')">
+          <div class="cl-top">
+            <div class="ava quente" style="width:48px;height:48px;font-size:16px">JS</div>
+            <div><div class="cl-name">João Silva</div><div class="cl-detail">Honda Civic 2019 · ABC-1234 · Última: 12d</div></div>
+          </div>
+          <div class="cl-bottom">
+            <div><div class="cs-lbl">Gasto</div><div class="cs-val">R$ 2.170</div></div>
+            <div><div class="cs-lbl">Visitas</div><div class="cs-val" style="color:var(--green)">7</div></div>
+            <div class="pill quente"><span class="sdot quente"></span>87%</div>
+          </div>
+        </div>
+        <div class="client-row" onclick="nav(null,'raiox')">
+          <div class="cl-top">
+            <div class="ava quente" style="width:48px;height:48px;font-size:16px">AC</div>
+            <div><div class="cl-name">Ana Costa</div><div class="cl-detail">Toyota Corolla 2021 · XYZ-5678 · Última: 5d</div></div>
+          </div>
+          <div class="cl-bottom">
+            <div><div class="cs-lbl">Gasto</div><div class="cs-val">R$ 3.840</div></div>
+            <div><div class="cs-lbl">Visitas</div><div class="cs-val" style="color:var(--green)">12</div></div>
+            <div class="pill quente"><span class="sdot quente"></span>94%</div>
+          </div>
+        </div>
+        <div class="client-row" onclick="nav(null,'raiox')">
+          <div class="cl-top">
+            <div class="ava morno" style="width:48px;height:48px;font-size:16px">RP</div>
+            <div><div class="cl-name">Roberto Pinto</div><div class="cl-detail">VW Gol 2018 · DEF-9012 · Última: 48d</div></div>
+          </div>
+          <div class="cl-bottom">
+            <div><div class="cs-lbl">Gasto</div><div class="cs-val">R$ 1.250</div></div>
+            <div><div class="cs-lbl">Visitas</div><div class="cs-val" style="color:var(--yellow)">5</div></div>
+            <div class="pill morno"><span class="sdot morno"></span>62%</div>
+          </div>
+        </div>
+        <div class="client-row" onclick="nav(null,'raiox')">
+          <div class="cl-top">
+            <div class="ava esf" style="width:48px;height:48px;font-size:16px">MF</div>
+            <div><div class="cl-name">Mariana Ferreira</div><div class="cl-detail">Fiat Argo 2022 · GHI-3456 · Última: 90d</div></div>
+          </div>
+          <div class="cl-bottom">
+            <div><div class="cs-lbl">Gasto</div><div class="cs-val">R$ 670</div></div>
+            <div><div class="cs-lbl">Visitas</div><div class="cs-val" style="color:var(--orange-s)">3</div></div>
+            <div class="pill esf"><span class="sdot esf"></span>38%</div>
+          </div>
+        </div>
+        <div class="client-row" onclick="nav(null,'raiox')">
+          <div class="cl-top">
+            <div class="ava frio" style="width:48px;height:48px;font-size:16px">CL</div>
+            <div><div class="cl-name">Carlos Lima</div><div class="cl-detail">Chevrolet Onix 2020 · JKL-7890 · Última: 150d</div></div>
+          </div>
+          <div class="cl-bottom">
+            <div><div class="cs-lbl">Gasto</div><div class="cs-val">R$ 480</div></div>
+            <div><div class="cs-lbl">Visitas</div><div class="cs-val" style="color:var(--red)">2</div></div>
+            <div class="pill frio"><span class="sdot frio"></span>18%</div>
+          </div>
+        </div>
+        <div class="client-row" onclick="nav(null,'raiox')">
+          <div class="cl-top">
+            <div class="ava quente" style="width:48px;height:48px;font-size:16px">PS</div>
+            <div><div class="cl-name">Patricia Santos</div><div class="cl-detail">Hyundai HB20 2023 · MNO-1234 · Última: 20d</div></div>
+          </div>
+          <div class="cl-bottom">
+            <div><div class="cs-lbl">Gasto</div><div class="cs-val">R$ 2.890</div></div>
+            <div><div class="cs-lbl">Visitas</div><div class="cs-val" style="color:var(--green)">9</div></div>
+            <div class="pill quente"><span class="sdot quente"></span>91%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-raiox" class="screen">
+      <button class="btn btn-ghost" style="margin-bottom:20px; border:none; padding:0; height:auto; background:none; font-size:15px" onclick="nav(null,'clientes')">← Voltar</button>
+
+      <div class="card" style="padding-top:24px">
+        <div class="hero-ava">JS</div>
+        <div class="hero-name">João Silva</div>
+        <div class="hero-sub" style="margin-bottom:12px">Honda Civic 2019 · ABC-1234</div>
+        <div style="text-align:center"><div class="pill quente" style="margin-bottom:24px">🟢 QUENTE — Cliente Fiel</div></div>
+
+        <div class="gauge-hdr"><span class="gauge-lbl">Afinidade</span><span class="gauge-val">87%</span></div>
+        <div class="gauge-track" style="margin-bottom:24px"><div class="gauge-fill" style="width:87%"></div></div>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <button class="btn btn-primary">💬 Mensagem</button>
+          <button class="btn btn-ghost">📅 Agendar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="info-row"><span class="info-key">📞 Telefone</span><span class="info-val">(11) 99999-1234</span></div>
+        <div class="info-row"><span class="info-key">📅 Última visita</span><span class="info-val" style="color:var(--green)">12 dias atrás</span></div>
+        <div class="info-row"><span class="info-key">🔮 Próximo serviço</span><span class="info-val">Alinhamento</span></div>
+        <div class="info-row"><span class="info-key">💰 Ticket médio</span><span class="info-val">R$ 310</span></div>
+        <div class="info-row"><span class="info-key">💵 Total gasto</span><span class="info-val" style="color:var(--ora2)">R$ 2.170</span></div>
+        <div class="info-row"><span class="info-key">🌟 NPS</span><span class="info-val" style="color:var(--green)">10 / 10</span></div>
+      </div>
+
+      <div class="snapshot">
+        <div class="snap-title">⚡ Snapshot — tudo em 5s</div>
+        <div class="snap-item"><span>🔧</span> Última: Troca de óleo (12 dias) — R$ 280</div>
+        <div class="snap-item"><span>🔮</span> Próximo: Alinhamento previsto em ~2 meses</div>
+        <div class="snap-item"><span>⏰</span> Sempre vem aos sábados de manhã</div>
+        <div class="snap-item"><span>❤️</span> Não gosta de esperar — avisar se atrasar</div>
+      </div>
+
+      <div class="card" style="background: linear-gradient(145deg, var(--card2), #1F1510); border-color:var(--ora-glow)">
+        <div style="font-size:11px; color:var(--ora); font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-bottom:8px">🎯 Próxima ação da IA</div>
+        <div style="font-size:14px; line-height:1.5; color:var(--t1)">João está no prazo de alinhamento. Manda mensagem na quinta oferecendo horário no sábado de manhã.</div>
+      </div>
+
+      <div class="card" style="padding:12px 20px 20px">
+        <div class="tab-nav">
+          <button class="tab-btn active" onclick="switchTab(this,'tab-hist')">📋 Histórico</button>
+          <button class="tab-btn" onclick="switchTab(this,'tab-conv')">💬 Chat</button>
+          <button class="tab-btn" onclick="switchTab(this,'tab-notas')">📝 Notas</button>
+        </div>
+
+        <div id="tab-hist" class="tab-content active">
+          <div class="tl-list">
+            <div class="tl-item">
+              <div class="tl-hdr"><div><div class="tl-service">Troca de óleo + Filtro</div></div><div style="text-align:right"><div class="tl-val">R$ 280</div><div class="tl-date">12 dias atrás</div></div></div>
+              <div class="tl-tags"><span class="tl-tag">📷 3 fotos</span><span class="tl-tag">💳 Pix</span><span class="tl-tag">👤 Marcos</span></div>
+              <div class="tl-note">"Óleo muito escuro. Pneu traseiro direito com pouco sulco — avisei o cliente."</div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-hdr"><div><div class="tl-service">Troca de pastilhas</div></div><div style="text-align:right"><div class="tl-val">R$ 420</div><div class="tl-date">4 meses atrás</div></div></div>
+              <div class="tl-tags"><span class="tl-tag">💳 Cartão</span><span class="tl-tag">👤 João</span></div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-hdr"><div><div class="tl-service">Alinhamento e balanc.</div></div><div style="text-align:right"><div class="tl-val">R$ 180</div><div class="tl-date">7 meses atrás</div></div></div>
+              <div class="tl-tags"><span class="tl-tag">💳 Dinheiro</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-conv" class="tab-content">
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <div class="msg-row sent"><div>
+              <div class="msg-bub">Oi João! Tudo certo com o carro depois da troca? 🔧</div>
+              <div class="msg-time" style="text-align:right">11 dias atrás · lido ✓✓</div>
+            </div></div>
+            <div class="msg-row recv"><div>
+              <div class="msg-bub">Valeu! Carro tá rodando liso 👍</div>
+              <div class="msg-time">11 dias atrás</div>
+            </div></div>
+            <div class="msg-row sent"><div>
+              <div class="msg-bub">Tá na hora do freio! Tenho horário no sábado.</div>
+              <div class="msg-time" style="text-align:right">4 meses atrás · lido ✓✓</div>
+            </div></div>
+            <div class="msg-row recv"><div>
+              <div class="msg-bub">Marca pra mim! 9h pode?</div>
+              <div class="msg-time">4 meses atrás</div>
+            </div></div>
+          </div>
+        </div>
+
+        <div id="tab-notas" class="tab-content">
+          <div class="note-card">
+            <div class="note-hdr"><span class="note-auth">Marcos (mecânico)</span><span class="note-date">12 dias atrás</span></div>
+            <div class="note-txt">Cliente meio apressado hoje, mas educado. Avisei do pneu traseiro, ele disse que já sabia.</div>
+          </div>
+          <div class="note-card">
+            <div class="note-hdr"><span class="note-auth">João (atendente)</span><span class="note-date">6 meses atrás</span></div>
+            <div class="note-txt">Prefere ser chamado de "Zé", não João. Cliente pontual.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-acoes" class="screen">
+      <div class="alert">⚠️ <strong>8 clientes esfriando rápido.</strong> Aja hoje para evitar perda estimada de R$ 2.480.</div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-family:var(--font-disp);font-size:14px;font-weight:700;color:var(--red)">🔴 URGENTE</div>
+          <span class="chip" style="background:var(--red-bg);color:var(--red);border:none">8 pendentes</span>
+        </div>
+        
+        <div class="act-row" onclick="nav(null,'raiox')">
+          <div class="act-row-left"><div class="ava esf" style="width:36px;height:36px;font-size:12px">MF</div><div><div class="act-main">Mariana Ferreira</div><div class="act-sub">90d sem aparecer · 38%</div></div></div>
+          <button class="btn btn-ghost btn-icon">💬</button>
+        </div>
+        <div class="act-row" onclick="nav(null,'raiox')">
+          <div class="act-row-left"><div class="ava frio" style="width:36px;height:36px;font-size:12px">CL</div><div><div class="act-main">Carlos Lima</div><div class="act-sub">150d · 🔴 18%</div></div></div>
+          <button class="btn btn-ghost btn-icon">💬</button>
+        </div>
+        <div class="act-row">
+          <div class="act-row-left"><div class="ava frio" style="width:36px;height:36px;font-size:12px">BN</div><div><div class="act-main">Bruno Neto</div><div class="act-sub">120d · 🔴 22%</div></div></div>
+          <button class="btn btn-ghost btn-icon">💬</button>
+        </div>
+        <div style="text-align:center;padding:12px 0 0;font-size:13px;color:var(--t3);cursor:pointer;font-weight:600">+ 5 mais →</div>
+      </div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-family:var(--font-disp);font-size:14px;font-weight:700;color:var(--yellow)">🟡 IMPORTANTE</div>
+          <span class="chip" style="background:var(--yellow-bg);color:var(--yellow);border:none">16 pendentes</span>
+        </div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:8px;font-weight:600">No prazo de retorno</div>
+        <div class="act-row" onclick="nav(null,'raiox')">
+          <div class="act-row-left"><div class="ava quente" style="width:36px;height:36px;font-size:12px">JS</div><div><div class="act-main">João Silva</div><div class="act-sub">Alinhamento (vence em 3 sem.)</div></div></div>
+          <button class="btn btn-ghost btn-icon">💬</button>
+        </div>
+        <div class="act-row">
+          <div class="act-row-left"><div class="ava morno" style="width:36px;height:36px;font-size:12px">RP</div><div><div class="act-main">Roberto Pinto</div><div class="act-sub">Revisão geral (vence em 2 sem.)</div></div></div>
+          <button class="btn btn-ghost btn-icon">💬</button>
+        </div>
+        <div class="divider"></div>
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--t3);margin-bottom:8px;font-weight:600">Aniversariantes 🎂</div>
+        <div class="act-row" style="margin-bottom:0">
+          <div class="act-row-left"><div class="ava quente" style="width:36px;height:36px;font-size:12px">PS</div><div><div class="act-main">Patricia Santos</div><div class="act-sub">🎂 Aniversário hoje!</div></div></div>
+          <button class="btn btn-ghost btn-icon">🎉</button>
+        </div>
+      </div>
+
+      <div class="card" style="border-color:var(--ora-glow)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div style="font-family:var(--font-disp);font-size:14px;font-weight:700;color:var(--ora)">🤖 IA Sugeriu</div>
+          <span class="chip ora">2 mensagens prontas</span>
+        </div>
+        <div class="ai-card">
+          <div class="ai-card-hdr"><span class="ai-card-name">Para: João Silva</span><span class="ai-card-type">Alinhamento</span></div>
+          <div class="ai-card-body">"Oi Zé! Já tem 3 meses desde o alinhamento — tô com horário livre no sábado de manhã, que tal?"</div>
+          <div class="ai-card-actions"><button class="btn btn-primary btn-sm" style="flex:1">✅ Aprovar</button><button class="btn btn-ghost btn-sm">✏️</button></div>
+        </div>
+        <div class="ai-card cold" style="margin-bottom:0">
+          <div class="ai-card-hdr"><span class="ai-card-name">Para: Mariana Ferreira</span><span class="ai-card-type" style="color:var(--orange-s)">Reengajamento</span></div>
+          <div class="ai-card-body">"Oi Mari! Já faz um tempo que você não aparece por aqui. Tudo bem com o carro? 🔧"</div>
+          <div class="ai-card-actions"><button class="btn btn-primary btn-sm" style="flex:1">✅ Aprovar</button><button class="btn btn-ghost btn-sm">✏️</button></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="screen-analytics" class="screen">
+      <div class="ftabs-scroll" style="margin-bottom:16px">
+        <button class="ftab">30 dias</button>
+        <button class="ftab active">90 dias</button>
+        <button class="ftab">12 meses</button>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-lbl">Taxa de Retorno</div>
+        <div class="chart-big" style="color:var(--green)">68%</div>
+        <span class="chart-chg pos">↑ +7% vs mês anterior</span>
+        <div class="bar-chart">
+          <div class="bar-col"><div class="b-fill" style="height:55%"></div><div class="b-lbl">Jan</div></div>
+          <div class="bar-col"><div class="b-fill" style="height:60%"></div><div class="b-lbl">Fev</div></div>
+          <div class="bar-col"><div class="b-fill" style="height:50%"></div><div class="b-lbl">Mar</div></div>
+          <div class="bar-col"><div class="b-fill" style="height:65%"></div><div class="b-lbl">Abr</div></div>
+          <div class="bar-col"><div class="b-fill" style="height:72%"></div><div class="b-lbl">Mai</div></div>
+          <div class="bar-col"><div class="b-fill hi" style="height:68%"></div><div class="b-lbl" style="color:var(--ora2)">Jun</div></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-lbl">Ticket Médio</div>
+        <div class="chart-big" style="color:var(--ora2)">R$ 310</div>
+        <span class="chart-chg pos">↑ R$ 28 vs anterior</span>
+        <div class="bar-chart">
+          <div class="bar-col"><div class="b-fill" style="height:72%"></div><div class="b-lbl">Jan</div></div>
+          <div class="bar-col"><div class="b-fill" style="height:75%"></div><div class="b-lbl">Fev</div></div>
+          <div class="bar-col"><div class="b-fill" style="height:68%"></div><div class="b-lbl">Mar</div></div>
+          <div class="bar-col"><div class="b-fill" style="height:80%"></div><div class="b-lbl">Abr</div></div>
+          <div class="bar-col"><div class="b-fill" style="height:85%"></div><div class="b-lbl">Mai</div></div>
+          <div class="bar-col"><div class="b-fill hi" style="height:88%"></div><div class="b-lbl" style="color:var(--ora2)">Jun</div></div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-lbl">Distribuição da Base</div>
+        <div class="chart-big" style="color:var(--t1)">200</div>
+        <span class="chart-chg pos">↑ 12 novos este mês</span>
+        <div class="donut-wrap">
+          <svg class="donut-svg" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="35" fill="none" stroke="var(--card2)" stroke-width="20"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="var(--green)"    stroke-width="20" stroke-dasharray="138.2 219.9" stroke-dashoffset="54.97"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="var(--yellow)"   stroke-width="20" stroke-dasharray="46.8 219.9"  stroke-dashoffset="-83.23"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="var(--orange-s)" stroke-width="20" stroke-dasharray="20.7 219.9"  stroke-dashoffset="-130.03"/>
+            <circle cx="50" cy="50" r="35" fill="none" stroke="var(--red)"      stroke-width="20" stroke-dasharray="12 219.9"    stroke-dashoffset="-150.73"/>
+          </svg>
+          <div class="donut-leg">
+            <div class="dl-row"><div class="dl-dot" style="background:var(--green)"></div>Quentes<span class="dl-pct">63%</span></div>
+            <div class="dl-row"><div class="dl-dot" style="background:var(--yellow)"></div>Mornos<span class="dl-pct">21%</span></div>
+            <div class="dl-row"><div class="dl-dot" style="background:var(--orange-s)"></div>Esfriando<span class="dl-pct">10%</span></div>
+            <div class="dl-row"><div class="dl-dot" style="background:var(--red)"></div>Frios<span class="dl-pct">6%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-hdr"><div class="sec-title">🏆 Top Serviços</div><span class="chip">Top 5</span></div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div class="rb-row"><div class="rb-label">Troca de óleo</div><div class="rb-track"><div class="rb-fill" style="width:100%;background:var(--ora)"></div></div><div class="rb-val">R$ 6.7k</div></div>
+          <div class="rb-row"><div class="rb-label">Freios</div><div class="rb-track"><div class="rb-fill" style="width:78%;background:var(--ora2)"></div></div><div class="rb-val">R$ 5.2k</div></div>
+          <div class="rb-row"><div class="rb-label">Alinhamento</div><div class="rb-track"><div class="rb-fill" style="width:60%"></div></div><div class="rb-val">R$ 4.0k</div></div>
+          <div class="rb-row"><div class="rb-label">Revisão geral</div><div class="rb-track"><div class="rb-fill" style="width:45%"></div></div><div class="rb-val">R$ 3.0k</div></div>
+          <div class="rb-row"><div class="rb-label">Suspensão</div><div class="rb-track"><div class="rb-fill" style="width:30%"></div></div><div class="rb-val">R$ 2.0k</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sec-hdr" style="margin-bottom:12px"><div class="sec-title">📅 Mapa de Calor</div></div>
+        <div style="font-size:13px;color:var(--t3);margin-bottom:16px">Quando os clientes mais aparecem</div>
+        <div id="heatmap" style="display:flex;flex-direction:column;gap:4px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:12px"></div>
+      </div>
+    </div>
+
+    <div id="screen-segmentacao" class="screen">
+      <div style="margin-bottom:20px">
+        <div style="font-size:13px;color:var(--t3)">Encontre os clientes certos</div>
+      </div>
+
+      <div class="seg-grid">
+        <div class="seg-card" onclick="nav(null,'clientes')"><div class="seg-emoji">🔥</div><div class="seg-name">VIP</div><div class="seg-count" style="color:var(--green)">24</div><div class="seg-desc">Alto gasto + afinidade</div></div>
+        <div class="seg-card" onclick="nav(null,'clientes')"><div class="seg-emoji">📉</div><div class="seg-name">Em Risco</div><div class="seg-count" style="color:var(--red)">27</div><div class="seg-desc">Afinidade caindo</div></div>
+        <div class="seg-card" onclick="nav(null,'clientes')"><div class="seg-emoji">⏰</div><div class="seg-name">No Prazo</div><div class="seg-count" style="color:var(--yellow)">61</div><div class="seg-desc">Serviço em 30 dias</div></div>
+        <div class="seg-card" onclick="nav(null,'clientes')"><div class="seg-emoji">💤</div><div class="seg-name">Inativos</div><div class="seg-count" style="color:var(--t3)">11</div><div class="seg-desc">90+ dias ausentes</div></div>
+        <div class="seg-card" onclick="nav(null,'clientes')"><div class="seg-emoji">🎂</div><div class="seg-name">Aniversários</div><div class="seg-count" style="color:var(--ora2)">4</div><div class="seg-desc">Neste mês</div></div>
+        <div class="seg-card" onclick="nav(null,'clientes')"><div class="seg-emoji">🆕</div><div class="seg-name">Novos</div><div class="seg-count" style="color:var(--green)">8</div><div class="seg-desc">Primeiro mês</div></div>
+        <div class="seg-card" onclick="nav(null,'clientes')"><div class="seg-emoji">💰</div><div class="seg-name">Alto Valor</div><div class="seg-count" style="color:var(--ora2)">18</div><div class="seg-desc">Gasto > R$ 2k</div></div>
+        <div class="seg-card" onclick="nav(null,'clientes')"><div class="seg-emoji">👎</div><div class="seg-name">Insatisfeitos</div><div class="seg-count" style="color:var(--red)">3</div><div class="seg-desc">NPS < 7</div></div>
+      </div>
+
+      <div class="card">
+        <div class="sec-title" style="margin-bottom:16px">⚡ Ações em Lote da IA</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="background:var(--card2);border:0.5px solid var(--b1);border-radius:var(--r2);padding:16px">
+            <div style="font-size:12px;color:var(--orange-s);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">🟠 Campanha de Reengajamento</div>
+            <div style="font-size:14px;color:var(--t2);line-height:1.5;margin-bottom:16px">27 clientes em risco podem ser recuperados com mensagem personalizada hoje.</div>
+            <button class="btn btn-primary" style="width:100%">Ver campanha (R$ 8.3k pot.)</button>
+          </div>
+          <div style="background:var(--card2);border:0.5px solid var(--b1);border-radius:var(--r2);padding:16px">
+            <div style="font-size:12px;color:var(--green);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">🟢 Indicação VIP</div>
+            <div style="font-size:14px;color:var(--t2);line-height:1.5;margin-bottom:16px">24 clientes VIP têm alta probabilidade de indicar novos clientes agora.</div>
+            <button class="btn btn-ghost" style="width:100%">Criar campanha</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <div class="bnav-item active" onclick="nav(this,'dashboard')"><div class="bnav-icon">📊</div><span>Resumo</span></div>
+    <div class="bnav-item" onclick="nav(this,'clientes')"><div class="bnav-icon">👥</div><span>Base</span></div>
+    <div class="bnav-item" onclick="nav(this,'acoes')"><div class="bnav-icon">🎯</div><span>Ações</span></div>
+    <div class="bnav-item" onclick="nav(this,'segmentacao')"><div class="bnav-icon">🔍</div><span>Busca</span></div>
+    <div class="bnav-item" onclick="nav(this,'analytics')"><div class="bnav-icon">📈</div><span>Dados</span></div>
+  </nav>
+
+</div>
+
+<script>
+/* ── Navigation ── */
+const TITLES = {
+  dashboard: '📊 Dashboard', clientes: '👥 Base de Clientes', raiox: '👤 Raio-X',
+  acoes: '🎯 Painel de Ações', analytics: '📈 Analytics', segmentacao: '🔍 Segmentação'
+};
+
+function nav(el, name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const target = document.getElementById('screen-'+name);
+  if (target) target.classList.add('active');
+
+  if(TITLES[name]) document.getElementById('topbar-title').innerHTML = TITLES[name];
+
+  if (el && el.classList.contains('bnav-item')) {
+    document.querySelectorAll('.bnav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+  } else {
+    document.querySelectorAll('.bnav-item').forEach(n => {
+      n.classList.remove('active');
+      const text = n.textContent.toLowerCase();
+      if ((name==='dashboard' && text.includes('resumo')) || (name==='clientes' && text.includes('base')) || 
+          (name==='acoes' && text.includes('ações')) || (name==='segmentacao' && text.includes('busca')) || 
+          (name==='analytics' && text.includes('dados'))) {
+         n.classList.add('active');
+      }
+    });
+  }
+  document.querySelector('.content').scrollTo({top: 0, behavior: 'smooth'});
+}
+
+/* ── Tab switcher ── */
+function switchTab(btn, id) {
+  const panel = btn.closest('.card');
+  panel.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  panel.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+
+/* ── Egg grid (Restaurado com lógica de filtro) ── */
+const baseClients = [
+  {i:'JS',s:'quente'},{i:'AC',s:'quente'},{i:'PS',s:'quente'},{i:'LM',s:'quente'},{i:'FB',s:'quente'},
+  {i:'RM',s:'morno'},{i:'KA',s:'morno'},{i:'TO',s:'morno'},{i:'GP',s:'esf'},{i:'WC',s:'esf'},{i:'MF',s:'frio'}
+];
+const allC = [...baseClients];
+const STS = ['quente','quente','morno','esf','frio','perdido'];
+for (let i = 0; i < 40; i++) { allC.push({ i: 'C'+i, s: STS[Math.floor(Math.random() * STS.length)] }); }
+
+function buildEggs(filter='all') {
+  const grid = document.getElementById('egg-grid');
+  grid.innerHTML = '';
+  const src = filter === 'all' ? allC : allC.filter(c => c.s === filter);
+  src.slice(0, 48).forEach((c) => {
+    const e = document.createElement('div');
+    e.className = 'egg ' + c.s;
+    e.innerHTML = c.i;
+    e.onclick = () => nav(null,'raiox');
+    grid.appendChild(e);
+  });
+}
+
+function filterEggs(btn, filter) {
+  btn.parentElement.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildEggs(filter);
+}
+buildEggs();
+
+/* ── Heatmap (Restaurado e responsivo) ── */
+function buildHeatmap() {
+  const el = document.getElementById('heatmap');
+  if (!el) return;
+  const days = ['Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const hours = ['8h','10h','12h','14h','16h','18h'];
+  const data = [[2,3,4,3,2,1],[4,6,7,6,5,3],[3,4,5,4,3,2],[1,2,3,2,2,1],[2,3,4,3,3,2],[1,2,2,2,1,1]];
+
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'display:flex;gap:4px;padding-left:32px;min-width:280px';
+  days.forEach(d => {
+    const c = document.createElement('div');
+    c.style.cssText = 'flex:1;text-align:center;font-size:11px;color:var(--t3)';
+    c.textContent = d; hdr.appendChild(c);
+  });
+  el.appendChild(hdr);
+
+  hours.forEach((h, hi) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;gap:4px;align-items:center;min-width:280px';
+    const lbl = document.createElement('span');
+    lbl.style.cssText = 'font-size:11px;color:var(--t3);width:28px;flex-shrink:0';
+    lbl.textContent = h; row.appendChild(lbl);
+    
+    days.forEach((d, di) => {
+      const v = data[hi][di];
+      const cell = document.createElement('div');
+      cell.style.cssText = `flex:1;height:24px;border-radius:4px;background:rgba(255,107,0,${v*0.15});`;
+      row.appendChild(cell);
+    });
+    el.appendChild(row);
+  });
+}
+buildHeatmap();
+</script>
+</body>
+</html>
